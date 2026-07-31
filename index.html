@@ -55,21 +55,22 @@
     font-size: 0.95rem;
   }
 
-  select, input[type="range"] {
+  select, input[type="text"], input[type="range"] {
     width: 100%;
     font-size: 1rem;
   }
 
-  select {
+  select, input[type="text"] {
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid #3a3f5c;
     background: #262b47;
     color: var(--text);
     appearance: none;
+    font-family: inherit;
   }
 
-  select:focus {
+  select:focus, input[type="text"]:focus {
     outline: 2px solid var(--accent);
   }
 
@@ -117,6 +118,61 @@
     margin-top: 14px;
   }
 
+  .bets-panel {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 20px;
+    background: var(--card);
+    border-radius: 20px;
+    padding: 24px 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .bets-panel h2 {
+    font-size: 1.1rem;
+    margin: 0 0 16px;
+    text-align: center;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 8px 6px;
+    border-bottom: 1px solid #3a3f5c;
+  }
+
+  th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  td.amount-cell {
+    text-align: right;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .empty-bets {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    padding: 8px 0;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
   #fireworks-canvas {
     position: fixed;
     inset: 0;
@@ -153,76 +209,189 @@
 </head>
 <body>
 
-  <div class="panel" id="panel">
-    <h1>🏆 Turneringsbetting</h1>
+  <div class="layout">
+    <div class="panel" id="panel">
+      <h1>🏆 Turneringsbetting</h1>
 
-    <div class="field">
-      <label for="username">Välj ditt användarnamn</label>
-      <select id="username">
-        <option value="" disabled selected>Välj ett namn...</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="target">Vem vill du betta på</label>
-      <select id="target">
-        <option value="" disabled selected>Välj ett namn...</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="amount">Hur mycket vill du satsa?</label>
-      <div class="amount-row">
-        <input type="range" id="amount" min="1" max="20" step="1" value="1">
-        <div class="amount-value"><span id="amount-value">1</span> SEK</div>
+      <div class="field">
+        <label for="username">Välj ditt användarnamn</label>
+        <input type="text" id="username" placeholder="Skriv ditt namn..." list="username-suggestions" autocomplete="off">
+        <datalist id="username-suggestions"></datalist>
       </div>
+
+      <div class="field">
+        <label for="target">Vem vill du betta på</label>
+        <input type="text" id="target" placeholder="Skriv ett namn..." list="target-suggestions" autocomplete="off">
+        <datalist id="target-suggestions"></datalist>
+      </div>
+
+      <div class="field">
+        <label for="amount">Hur mycket vill du satsa?</label>
+        <div class="amount-row">
+          <input type="range" id="amount" min="1" max="20" step="1" value="1">
+          <div class="amount-value"><span id="amount-value">1</span> SEK</div>
+        </div>
+      </div>
+
+      <button id="submit-btn" disabled>Satsa!</button>
+      <p class="hint">Fyll i alla fält för att kunna satsa.</p>
     </div>
 
-    <button id="submit-btn" disabled>Satsa!</button>
-    <p class="hint">Fyll i alla fält för att kunna satsa.</p>
+    <div class="bets-panel">
+      <h2>Alla satsningar</h2>
+      <table id="bets-table">
+        <thead>
+          <tr>
+            <th>Användarnamn</th>
+            <th>Bettat på</th>
+            <th style="text-align:right">Summa</th>
+          </tr>
+        </thead>
+        <tbody id="bets-body"></tbody>
+      </table>
+      <p class="empty-bets" id="empty-bets">Inga satsningar än.</p>
+    </div>
   </div>
 
   <canvas id="fireworks-canvas"></canvas>
-  <div id="celebration-text"><span>Vad festligt, nu startar vi turneringen!</span></div>
+  <div id="celebration-text"><span id="celebration-message">Vad festligt, nu startar vi turneringen!</span></div>
 
 <script>
-  // Ändra listan här för att lägga till/ta bort deltagare.
-  const USERNAMES = [
+  // Ursprungslista, används bara första gången appen öppnas i en webbläsare.
+  const DEFAULT_USERNAMES = [
     "Anna", "Erik", "Johan", "Sara", "Lisa",
     "Oskar", "Emma", "Karl", "Maja", "Viktor"
   ];
+  const STORAGE_KEY = "turnering-anvandarnamn";
 
-  const usernameSelect = document.getElementById("username");
-  const targetSelect = document.getElementById("target");
+  function loadUsernames() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (Array.isArray(stored) && stored.length) return stored;
+    } catch (e) {}
+    return [...DEFAULT_USERNAMES];
+  }
+
+  function saveUsernames(names) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(names));
+  }
+
+  let usernames = loadUsernames();
+
+  const BETS_STORAGE_KEY = "turnering-satsningar";
+
+  function loadBets() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(BETS_STORAGE_KEY));
+      if (Array.isArray(stored)) return stored;
+    } catch (e) {}
+    return [];
+  }
+
+  function saveBets(list) {
+    localStorage.setItem(BETS_STORAGE_KEY, JSON.stringify(list));
+  }
+
+  let bets = loadBets();
+
+  const betsBody = document.getElementById("bets-body");
+  const emptyBets = document.getElementById("empty-bets");
+
+  function renderBets() {
+    betsBody.innerHTML = "";
+    emptyBets.style.display = bets.length ? "none" : "block";
+    bets.forEach(bet => {
+      const row = document.createElement("tr");
+
+      const usernameCell = document.createElement("td");
+      usernameCell.textContent = bet.username;
+
+      const targetCell = document.createElement("td");
+      targetCell.textContent = bet.target;
+
+      const amountCell = document.createElement("td");
+      amountCell.className = "amount-cell";
+      amountCell.textContent = `${bet.amount} SEK`;
+
+      row.append(usernameCell, targetCell, amountCell);
+      betsBody.appendChild(row);
+    });
+  }
+  renderBets();
+
+  function addBet(username, target, amount) {
+    bets.push({ username, target, amount });
+    saveBets(bets);
+    renderBets();
+  }
+
+  const usernameInput = document.getElementById("username");
+  const usernameSuggestions = document.getElementById("username-suggestions");
+  const targetInput = document.getElementById("target");
+  const targetSuggestions = document.getElementById("target-suggestions");
   const amountInput = document.getElementById("amount");
   const amountValue = document.getElementById("amount-value");
   const submitBtn = document.getElementById("submit-btn");
 
-  function fillOptions(select) {
-    USERNAMES.forEach(name => {
+  function fillDatalist(datalist) {
+    datalist.innerHTML = "";
+    usernames.forEach(name => {
       const opt = document.createElement("option");
       opt.value = name;
-      opt.textContent = name;
-      select.appendChild(opt);
+      datalist.appendChild(opt);
     });
   }
-  fillOptions(usernameSelect);
-  fillOptions(targetSelect);
+
+  function renderUsernames() {
+    fillDatalist(usernameSuggestions);
+    fillDatalist(targetSuggestions);
+  }
+  renderUsernames();
+
+  function addUsername(name) {
+    if (!usernames.includes(name)) {
+      usernames.push(name);
+      saveUsernames(usernames);
+      renderUsernames();
+    }
+  }
 
   function updateSubmitState() {
-    const valid = usernameSelect.value && targetSelect.value;
+    const valid = usernameInput.value.trim() && targetInput.value.trim();
     submitBtn.disabled = !valid;
   }
 
-  usernameSelect.addEventListener("change", updateSubmitState);
-  targetSelect.addEventListener("change", updateSubmitState);
+  usernameInput.addEventListener("input", updateSubmitState);
+  targetInput.addEventListener("input", updateSubmitState);
 
   amountInput.addEventListener("input", () => {
     amountValue.textContent = amountInput.value;
   });
 
+  function messageForAmount(amount) {
+    if (amount === 1) return "Snålis!";
+    if (amount <= 14) return "Vad festligt, nu börjar turneringen!";
+    return "Oj, nu får du lugna ner dig! Tänk på ekonomin.";
+  }
+
   submitBtn.addEventListener("click", () => {
-    launchCelebration();
+    const name = usernameInput.value.trim();
+    const target = targetInput.value.trim();
+    const amount = Number(amountInput.value);
+    if (!name || !target) return;
+    addUsername(name);
+    addUsername(target);
+    addBet(name, target, amount);
+
+    const message = messageForAmount(amount);
+
+    usernameInput.value = "";
+    targetInput.value = "";
+    amountInput.value = 1;
+    amountValue.textContent = "1";
+    updateSubmitState();
+
+    launchCelebration(message);
   });
 
   // --- Fireworks ---
@@ -279,13 +448,15 @@
     animationId = requestAnimationFrame(animate);
   }
 
-  function launchCelebration() {
+  function launchCelebration(message) {
     resizeCanvas();
     canvas.style.display = "block";
     celebrationText.style.display = "flex";
-    celebrationText.querySelector("span").style.animation = "none";
-    void celebrationText.offsetWidth;
-    celebrationText.querySelector("span").style.animation = "";
+    const messageEl = document.getElementById("celebration-message");
+    messageEl.textContent = message;
+    messageEl.style.animation = "none";
+    void messageEl.offsetWidth;
+    messageEl.style.animation = "";
 
     ctx.fillStyle = "#0a0c17";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
