@@ -234,6 +234,35 @@
     margin: 12px 0 0;
   }
 
+  .results-subheading {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 20px 0 8px;
+    text-align: center;
+  }
+
+  .results-subheading:first-of-type {
+    margin-top: 0;
+  }
+
+  .results-list {
+    margin: 0;
+    padding: 0 0 0 22px;
+    font-size: 0.95rem;
+  }
+
+  .results-list li {
+    padding: 4px 0;
+  }
+
+  .results-list-plain {
+    list-style: none;
+    padding-left: 0;
+    text-align: center;
+  }
+
   .gate-overlay {
     position: fixed;
     inset: 0;
@@ -349,6 +378,8 @@
     position: relative;
     width: 100%;
     max-width: 360px;
+    max-height: 85vh;
+    overflow-y: auto;
     background: #b31414;
     border-radius: 12px;
     padding: 32px 28px;
@@ -641,7 +672,7 @@
       </div>
 
       <button id="submit-btn" disabled>Satsa!</button>
-      <p class="hint">Fyll i alla fält för att kunna satsa.</p>
+      <p class="hint" id="submit-hint">Fyll i alla fält för att kunna satsa.</p>
     </div>
 
     <div class="bets-panel">
@@ -718,6 +749,14 @@
       </div>
       <p class="empty-bets" id="outcomes-display-empty">Inga utfall registrerade än.</p>
     </div>
+
+    <div class="bets-panel" id="results-panel" style="display:none;">
+      <h2>Resultat</h2>
+      <h3 class="results-subheading">Vinnare</h3>
+      <ol class="results-list" id="results-winners"></ol>
+      <h3 class="results-subheading">MVP</h3>
+      <ul class="results-list results-list-plain" id="results-mvp"></ul>
+    </div>
   </div>
 
   <button id="pi-egg" class="pi-egg" aria-label="π">π</button>
@@ -769,6 +808,7 @@
         </div>
         <p class="empty-bets" id="outcomes-empty">Inga utfall registrerade än.</p>
 
+        <button id="pause-btn" class="reset-btn">Pausa betting</button>
         <button id="modal-reset-btn" class="reset-btn danger-btn">Nollställ allt</button>
       </div>
     </div>
@@ -905,6 +945,18 @@
         else store[key] = data;
       }
       onUpdate(store);
+    });
+    es.onerror = (e) => {
+      console.error(`Firebase-synk (${path}) tappade anslutningen, försöker återansluta...`, e);
+    };
+    return es;
+  }
+
+  function subscribeValue(path, onUpdate) {
+    const es = new EventSource(`${DB_BASE}/${path}.json`);
+    es.addEventListener("put", (e) => {
+      const { path: p, data } = JSON.parse(e.data);
+      if (p === "/") onUpdate(data);
     });
     es.onerror = (e) => {
       console.error(`Firebase-synk (${path}) tappade anslutningen, försöker återansluta...`, e);
@@ -1095,9 +1147,18 @@
     predictionLabel.textContent = target ? `Jag tror att ${target}...` : "Jag tror att personen...";
   }
 
+  let bettingPaused = false;
+  const submitHint = document.getElementById("submit-hint");
+
   function updateSubmitState() {
+    if (bettingPaused) {
+      submitBtn.disabled = true;
+      submitHint.textContent = "Årets turnering är slut. Tyvärr kan du inte längre betta.";
+      return;
+    }
     const valid = usernameInput.value.trim() && targetInput.value.trim() && predictionSelect.value;
     submitBtn.disabled = !valid;
+    submitHint.textContent = "Fyll i alla fält för att kunna satsa.";
   }
 
   usernameInput.addEventListener("input", updateSubmitState);
@@ -1120,6 +1181,10 @@
   const MAX_TOTAL_PER_USER = 50;
 
   submitBtn.addEventListener("click", () => {
+    if (bettingPaused) {
+      alert("Årets turnering är slut. Tyvärr kan du inte längre betta.");
+      return;
+    }
     if (isUnderage) {
       alert("Tyvärr, du är för ung.");
       return;
@@ -1173,6 +1238,15 @@
   const outcomesBody = document.getElementById("outcomes-body");
   const outcomesEmpty = document.getElementById("outcomes-empty");
   const modalResetBtn = document.getElementById("modal-reset-btn");
+  const pauseBtn = document.getElementById("pause-btn");
+
+  function updatePauseButtonLabel() {
+    pauseBtn.textContent = bettingPaused ? "Återuppta betting" : "Pausa betting";
+  }
+
+  pauseBtn.addEventListener("click", () => {
+    fbPut("settings/bettingPaused", !bettingPaused);
+  });
 
   function lockAdminModal() {
     modalAdmin.classList.remove("open");
@@ -1278,6 +1352,32 @@
 
       row.append(playerCell, outcomeCell);
       outcomesDisplayBody.appendChild(row);
+    });
+  }
+
+  const resultsPanel = document.getElementById("results-panel");
+  const resultsWinners = document.getElementById("results-winners");
+  const resultsMvp = document.getElementById("results-mvp");
+
+  function renderFinalResults(results) {
+    if (!results || (!results.winners && !results.mvp)) {
+      resultsPanel.style.display = "none";
+      return;
+    }
+    resultsPanel.style.display = "block";
+
+    resultsWinners.innerHTML = "";
+    (results.winners || []).forEach(place => {
+      const li = document.createElement("li");
+      li.textContent = (place.names || []).join(" / ");
+      resultsWinners.appendChild(li);
+    });
+
+    resultsMvp.innerHTML = "";
+    (results.mvp || []).forEach(name => {
+      const li = document.createElement("li");
+      li.textContent = name;
+      resultsMvp.appendChild(li);
     });
   }
 
@@ -1454,6 +1554,14 @@
     renderOutcomesTable();
     renderPublicOutcomes();
   });
+
+  subscribeValue("settings/bettingPaused", (value) => {
+    bettingPaused = !!value;
+    updateSubmitState();
+    updatePauseButtonLabel();
+  });
+
+  subscribeValue("finalResults", renderFinalResults);
 </script>
 </body>
 </html>

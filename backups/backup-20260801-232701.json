@@ -1,0 +1,229 @@
+{
+  "usernames": {
+    "-OyycWm63b3cJko5KRWt": "Mats",
+    "-OyycWnJMkQvpn9W0BQR": "Love",
+    "-OyygCjSY3_iGgza9pbo": "JohanWick",
+    "-OyygCnQyrZuWF7kYdqc": "Robocop",
+    "-OyyhNWqBfyjuaQ0kxCM": "Julian",
+    "-OyyhNWrNT_Hc9ECc2SM": "Tomas",
+    "-Oyyhh0cpTkLrJmr9eM0": "StellanSkarsgård",
+    "-OyyiuusTZpSEBnbdu6v": "Linnton",
+    "-OyykvDQQHR6t_ESSYjD": "Camilla",
+    "u1": "SamTheMan",
+    "u10": "Annannannanas (TwinWin)",
+    "u11": "HannaBanana",
+    "u12": "AllYouNeedIsLove",
+    "u13": "PiancaIngrosso",
+    "u14": "Länsman",
+    "u2": "JullTheBull",
+    "u3": "DinoRider",
+    "u4": "MatillaTheThrilla",
+    "u5": "LinaGrahnBästIStan",
+    "u6": "NissePisséPäronpungJättegammalInteUng",
+    "u7": "FasterFaster",
+    "u8": "MatsiYatzi",
+    "u9": "MiAnmore (TwinWin)"
+  },
+  "bets": {
+    "-OyycWnGMyBOeNwa4i5j": {
+      "amount": 20,
+      "prediction": "Vinner hela balunset",
+      "target": "Mats",
+      "username": "Love"
+    },
+    "-OyydLkHdZkeUOJmd5C0": {
+      "amount": 20,
+      "prediction": "Vinner hela balunset",
+      "target": "AllYouNeedIsLove",
+      "username": "HannaBanana"
+    },
+    "-OyydxswK7avS4ePQBCw": {
+      "amount": 20,
+      "prediction": "Vinner hela balunset",
+      "target": "DinoRider",
+      "username": "DinoRider"
+    },
+    "-OyyeI6_8PTlR7j93Uty": {
+      "amount": 10,
+      "prediction": "Vinner i kvarsfinal",
+      "target": "AllYouNeedIsLove",
+      "username": "AllYouNeedIsLove"
+    },
+    "-Oyyeiu3VtiXQC_LalZJ": {
+      "amount": 7,
+      "prediction": "Åker ut först",
+      "target": "Mats",
+      "username": "DinoRider"
+    },
+    "-Oyyer8FkMKQZpCIW9h5": {
+      "amount": 10,
+      "prediction": "MVP",
+      "target": "JullTheBull",
+      "username": "MatillaTheThrilla"
+    },
+    "-OyyfUV5ibNZ5ZXbrsAF": {
+      "amount": 10,
+      "prediction": "Vinner hela balunset",
+      "target": "AllYouNeedIsLove",
+      "username": "MatillaTheThrilla"
+    },
+    "-Oyyff9AxkuD36IJqwsE": {
+      "amount": 10,
+      "prediction": "Vinner semifinal",
+      "target": "SamTheMan",
+      "username": "MatillaTheThrilla"
+    },
+    "-OyyhNWxLPA7b6wkQhSs": {
+      "amount": 20,
+      "prediction": "Vinner hela balunset",
+      "target": "Julian",
+      "username": "Tomas"
+    },
+    "-OyyiB_EzePUDQSxP4DL": {
+      "amount": 20,
+      "prediction": "Vinner semifinal",
+      "target": "Annannannanas (TwinWin)",
+      "username": "MiAnmore (TwinWin)"
+    },
+    "-OyyiPyz_QqX5Ggdgudy": {
+      "amount": 10,
+      "prediction": "Vinner hela balunset",
+      "target": "MiAnmore (TwinWin)",
+      "username": "MiAnmore (TwinWin)"
+    },
+    "-OyyiVbSGReTmrFwX0jg": {
+      "amount": 5,
+      "prediction": "Åker ut först",
+      "target": "FasterFaster",
+      "username": "MiAnmore (TwinWin)"
+    },
+    "-OyyiXy4OeqFF--UjrOR": {
+      "amount": 20,
+      "prediction": "MVP",
+      "target": "JullTheBull",
+      "username": "NissePisséPäronpungJättegammalInteUng"
+    },
+    "-Oyyids1c0gknSg2T9BQ": {
+      "amount": 10,
+      "prediction": "Vinner brons",
+      "target": "SamTheMan",
+      "username": "MiAnmore (TwinWin)"
+    },
+    "-OyyifbSVWo7vMQvXBBb": {
+      "amount": 10,
+      "prediction": "Vinner hela balunset",
+      "target": "MatillaTheThrilla",
+      "username": "MatillaTheThrilla"
+    },
+    "-OyyiuuymZlvY-qMA_eu": {
+      "amount": 20,
+      "prediction": "Vinner hela balunset",
+      "target": "JullTheBull",
+      "username": "Linnton"
+    },
+    "-Oyyj09kOrNjx4LuEmp7": {
+      "amount": 20,
+      "prediction": "MVP",
+      "target": "Julian",
+      "username": "AllYouNeedIsLove"
+    },
+    "-Oyyj4S1aG6cPhctP6b0": {
+      "amount": 20,
+      "prediction": "Vinner hela balunset",
+      "target": "SamTheMan",
+      "username": "Linnton"
+    },
+    "-OyyjDqQ5rHGtGJO6iLT": {
+      "amount": 5,
+      "prediction": "Vinner brons",
+      "target": "MatillaTheThrilla",
+      "username": "Linnton"
+    },
+    "-OyyjYz47s78NdzZd3gp": {
+      "amount": 5,
+      "prediction": "Åker ut först",
+      "target": "DinoRider",
+      "username": "Linnton"
+    },
+    "-OyykvF9vvLBTBY3LfSM": {
+      "amount": 1,
+      "prediction": "Vinner i kvarsfinal",
+      "target": "HannaBanana",
+      "username": "Camilla"
+    },
+    "-OyytFcQwfeCVmZwlrUz": {
+      "amount": 5,
+      "prediction": "Vinner semifinal",
+      "target": "MatillaTheThrilla",
+      "username": "Annannannanas (TwinWin)"
+    },
+    "-Oyz2QEI8CIiNGJqnG4f": {
+      "amount": 5,
+      "prediction": "Vinner hela balunset",
+      "target": "FasterFaster",
+      "username": "Annannannanas (TwinWin)"
+    },
+    "-OyzCHRkR2K_GiP4YTw7": {
+      "amount": 4,
+      "prediction": "MVP",
+      "target": "DinoRider",
+      "username": "MatillaTheThrilla"
+    },
+    "-OyzCR_XIZHD2AhW8WEa": {
+      "amount": 2,
+      "prediction": "Åker ut först",
+      "target": "DinoRider",
+      "username": "MatillaTheThrilla"
+    }
+  },
+  "outcomes": {
+    "AllYouNeedIsLove": {
+      "outcome": "Åker ut först",
+      "player": "AllYouNeedIsLove"
+    },
+    "Annannannanas (TwinWin)": {
+      "outcome": "Vinner i kvarsfinal",
+      "player": "Annannannanas (TwinWin)"
+    },
+    "DinoRider": {
+      "outcome": "Vinner i kvarsfinal",
+      "player": "DinoRider"
+    },
+    "FasterFaster": {
+      "outcome": "Vinner hela balunset",
+      "player": "FasterFaster"
+    },
+    "HannaBanana": {
+      "outcome": "Åker ut först",
+      "player": "HannaBanana"
+    },
+    "JullTheBull": {
+      "outcome": "Vinner semifinal",
+      "player": "JullTheBull"
+    },
+    "LinaGrahnBästIStan": {
+      "outcome": "Åker ut först",
+      "player": "LinaGrahnBästIStan"
+    },
+    "MatillaTheThrilla": {
+      "outcome": "Vinner hela balunset",
+      "player": "MatillaTheThrilla"
+    },
+    "MatsiYatzi": {
+      "outcome": "Åker ut först",
+      "player": "MatsiYatzi"
+    },
+    "MiAnmore (TwinWin)": {
+      "outcome": "Vinner i kvarsfinal",
+      "player": "MiAnmore (TwinWin)"
+    },
+    "NissePisséPäronpungJättegammalInteUng": {
+      "outcome": "Vinner semifinal",
+      "player": "NissePisséPäronpungJättegammalInteUng"
+    },
+    "SamTheMan": {
+      "outcome": "Vinner i kvarsfinal",
+      "player": "SamTheMan"
+    }
+  }
+}
