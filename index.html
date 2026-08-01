@@ -176,6 +176,10 @@
     color: var(--muted);
   }
 
+  .winnings-heading {
+    margin-top: 24px !important;
+  }
+
   .table-scroll {
     width: 100%;
     overflow-x: auto;
@@ -701,6 +705,36 @@
         </table>
       </div>
       <p class="empty-bets" id="target-summary-empty">Inga satsningar än.</p>
+    </div>
+
+    <div class="bets-panel">
+      <h2>Utfall</h2>
+      <div class="table-scroll">
+        <table id="outcomes-display-table">
+          <thead>
+            <tr>
+              <th>Spelare</th>
+              <th>Utfall</th>
+            </tr>
+          </thead>
+          <tbody id="outcomes-display-body"></tbody>
+        </table>
+      </div>
+      <p class="empty-bets" id="outcomes-display-empty">Inga utfall registrerade än.</p>
+
+      <h2 class="winnings-heading">Vunnit per användare</h2>
+      <div class="table-scroll">
+        <table id="winnings-table">
+          <thead>
+            <tr>
+              <th>Användare</th>
+              <th class="col-amount" style="text-align:right">Vunnit</th>
+            </tr>
+          </thead>
+          <tbody id="winnings-body"></tbody>
+        </table>
+      </div>
+      <p class="empty-bets" id="winnings-empty">Inga vinster ännu.</p>
     </div>
   </div>
 
@@ -1242,6 +1276,81 @@
     });
   }
 
+  const outcomesDisplayBody = document.getElementById("outcomes-display-body");
+  const outcomesDisplayEmpty = document.getElementById("outcomes-display-empty");
+  const winningsBody = document.getElementById("winnings-body");
+  const winningsEmpty = document.getElementById("winnings-empty");
+
+  function renderPublicOutcomes() {
+    outcomesDisplayBody.innerHTML = "";
+    const entries = Object.values(outcomesStore).sort((a, b) => a.player.localeCompare(b.player, "sv"));
+    outcomesDisplayEmpty.style.display = entries.length ? "none" : "block";
+
+    entries.forEach(({ player, outcome }) => {
+      const row = document.createElement("tr");
+
+      const playerCell = document.createElement("td");
+      playerCell.textContent = player;
+
+      const outcomeCell = document.createElement("td");
+      outcomeCell.textContent = outcome;
+
+      row.append(playerCell, outcomeCell);
+      outcomesDisplayBody.appendChild(row);
+    });
+  }
+
+  function renderWinnings() {
+    const outcomeByPlayer = {};
+    Object.values(outcomesStore).forEach(({ player, outcome }) => {
+      outcomeByPlayer[player] = outcome;
+    });
+
+    // Pari-mutuel-pott per spelare: vinnarna delar på hela potten (allas
+    // insatser på den spelaren) i proportion till sin egen insats.
+    const totalPoolByTarget = {};
+    const winningPoolByTarget = {};
+    bets.forEach(bet => {
+      totalPoolByTarget[bet.target] = (totalPoolByTarget[bet.target] || 0) + bet.amount;
+      const actualOutcome = outcomeByPlayer[bet.target];
+      if (actualOutcome && actualOutcome === bet.prediction) {
+        winningPoolByTarget[bet.target] = (winningPoolByTarget[bet.target] || 0) + bet.amount;
+      }
+    });
+
+    const winnings = {};
+    bets.forEach(bet => {
+      const actualOutcome = outcomeByPlayer[bet.target];
+      if (!actualOutcome || actualOutcome !== bet.prediction) return;
+
+      const totalPool = totalPoolByTarget[bet.target];
+      const winningPool = winningPoolByTarget[bet.target];
+      const payout = bet.amount * (totalPool / winningPool);
+      winnings[bet.username] = (winnings[bet.username] || 0) + payout;
+    });
+
+    const entries = Object.entries(winnings)
+      .map(([username, total]) => [username, Math.round(total)])
+      .sort((a, b) => b[1] - a[1]);
+
+    winningsBody.innerHTML = "";
+    winningsEmpty.style.display = entries.length ? "none" : "block";
+
+    entries.forEach(([username, total]) => {
+      const row = document.createElement("tr");
+
+      const usernameCell = document.createElement("td");
+      usernameCell.textContent = username;
+
+      const amountCell = document.createElement("td");
+      amountCell.className = "amount-cell";
+      amountCell.textContent = `${total} SEK`;
+
+      row.append(usernameCell, amountCell);
+      winningsBody.appendChild(row);
+    });
+  }
+
   saveOutcomeBtn.addEventListener("click", () => {
     const player = outcomePlayerSelect.value;
     const outcome = outcomeValueSelect.value;
@@ -1360,11 +1469,14 @@
     betsStore = store;
     bets = Object.entries(store).map(([key, val]) => ({ key, ...val }));
     renderBets();
+    renderWinnings();
   });
 
   subscribeCollection("outcomes", (store) => {
     outcomesStore = store;
     renderOutcomesTable();
+    renderPublicOutcomes();
+    renderWinnings();
   });
 </script>
 </body>
