@@ -171,16 +171,29 @@
     text-align: center;
   }
 
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  th:last-child, td:last-child {
+    width: 30px;
   }
 
   th, td {
     text-align: left;
     padding: 8px 4px;
     border-bottom: 1px solid #e6d5b8;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   th {
@@ -288,15 +301,20 @@
   }
 
   .remove-btn {
-    padding: 4px 10px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
     border: 1px solid rgba(198,40,40,0.4);
-    border-radius: 8px;
+    border-radius: 50%;
     background: transparent;
     color: var(--ring-red);
     font-size: 0.75rem;
-    font-weight: 600;
+    line-height: 1;
+    font-weight: 700;
     cursor: pointer;
-    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .remove-btn:hover {
@@ -438,18 +456,20 @@
 
     <div class="bets-panel">
       <h2>Alla satsningar</h2>
-      <table id="bets-table">
-        <thead>
-          <tr>
-            <th>Bettare</th>
-            <th>Bettat på</th>
-            <th>Utfall</th>
-            <th style="text-align:right">Summa</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="bets-body"></tbody>
-      </table>
+      <div class="table-scroll">
+        <table id="bets-table">
+          <thead>
+            <tr>
+              <th>Bettare</th>
+              <th>Bettat på</th>
+              <th>Utfall</th>
+              <th style="text-align:right">Summa</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="bets-body"></tbody>
+        </table>
+      </div>
       <p class="empty-bets" id="empty-bets">Inga satsningar än.</p>
     </div>
   </div>
@@ -535,7 +555,9 @@
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
       removeBtn.className = "remove-btn";
-      removeBtn.textContent = "Ta bort";
+      removeBtn.textContent = "✕";
+      removeBtn.title = "Ta bort";
+      removeBtn.setAttribute("aria-label", "Ta bort satsning");
       removeBtn.addEventListener("click", () => removeBet(index));
       removeCell.appendChild(removeBtn);
 
