@@ -176,10 +176,6 @@
     color: var(--muted);
   }
 
-  .winnings-heading {
-    margin-top: 24px !important;
-  }
-
   .table-scroll {
     width: 100%;
     overflow-x: auto;
@@ -721,20 +717,6 @@
         </table>
       </div>
       <p class="empty-bets" id="outcomes-display-empty">Inga utfall registrerade än.</p>
-
-      <h2 class="winnings-heading">Vunnit per användare</h2>
-      <div class="table-scroll">
-        <table id="winnings-table">
-          <thead>
-            <tr>
-              <th>Användare</th>
-              <th class="col-amount" style="text-align:right">Vunnit</th>
-            </tr>
-          </thead>
-          <tbody id="winnings-body"></tbody>
-        </table>
-      </div>
-      <p class="empty-bets" id="winnings-empty">Inga vinster ännu.</p>
     </div>
   </div>
 
@@ -1279,8 +1261,6 @@
 
   const outcomesDisplayBody = document.getElementById("outcomes-display-body");
   const outcomesDisplayEmpty = document.getElementById("outcomes-display-empty");
-  const winningsBody = document.getElementById("winnings-body");
-  const winningsEmpty = document.getElementById("winnings-empty");
 
   function renderPublicOutcomes() {
     outcomesDisplayBody.innerHTML = "";
@@ -1298,54 +1278,6 @@
 
       row.append(playerCell, outcomeCell);
       outcomesDisplayBody.appendChild(row);
-    });
-  }
-
-  function renderWinnings() {
-    const outcomeByPlayer = {};
-    Object.values(outcomesStore).forEach(({ player, outcome }) => {
-      outcomeByPlayer[player] = outcome;
-    });
-
-    // En gemensam pott för hela turneringen: alla avgjorda satsningar (där
-    // spelaren man bettat på har ett registrerat utfall) läggs i samma pott.
-    // De som gissat rätt delar på förlorarnas insatser i proportion till sin
-    // egen insats. "Vunnit" = nettovinsten, dvs det man tjänar utöver att få
-    // tillbaka sin egen insats.
-    const resolvedBets = bets.filter(bet => outcomeByPlayer[bet.target] !== undefined);
-    const totalPool = resolvedBets.reduce((sum, bet) => sum + bet.amount, 0);
-    const winningBets = resolvedBets.filter(bet => outcomeByPlayer[bet.target] === bet.prediction);
-    const winningPool = winningBets.reduce((sum, bet) => sum + bet.amount, 0);
-
-    const winnings = {};
-    if (winningPool > 0) {
-      winningBets.forEach(bet => {
-        const payout = bet.amount * (totalPool / winningPool);
-        const profit = payout - bet.amount;
-        winnings[bet.username] = (winnings[bet.username] || 0) + profit;
-      });
-    }
-
-    const entries = Object.entries(winnings)
-      .map(([username, total]) => [username, Math.round(total)])
-      .filter(([, total]) => total > 0)
-      .sort((a, b) => b[1] - a[1]);
-
-    winningsBody.innerHTML = "";
-    winningsEmpty.style.display = entries.length ? "none" : "block";
-
-    entries.forEach(([username, total]) => {
-      const row = document.createElement("tr");
-
-      const usernameCell = document.createElement("td");
-      usernameCell.textContent = username;
-
-      const amountCell = document.createElement("td");
-      amountCell.className = "amount-cell";
-      amountCell.textContent = `${total} SEK`;
-
-      row.append(usernameCell, amountCell);
-      winningsBody.appendChild(row);
     });
   }
 
@@ -1515,14 +1447,12 @@
     betsStore = store;
     bets = Object.entries(store).map(([key, val]) => ({ key, ...val }));
     renderBets();
-    renderWinnings();
   });
 
   subscribeCollection("outcomes", (store) => {
     outcomesStore = store;
     renderOutcomesTable();
     renderPublicOutcomes();
-    renderWinnings();
   });
 </script>
 </body>
