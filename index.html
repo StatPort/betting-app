@@ -791,12 +791,23 @@
     return "Oj, nu får du lugna ner dig! Tänk på ekonomin.";
   }
 
+  const MAX_TOTAL_PER_USER = 50;
+
   submitBtn.addEventListener("click", () => {
     const name = usernameInput.value.trim();
     const target = targetInput.value.trim();
     const prediction = predictionSelect.value;
     const amount = Number(amountInput.value);
     if (!name || !target || !prediction) return;
+
+    const alreadyBet = bets
+      .filter(bet => bet.username === name)
+      .reduce((sum, bet) => sum + bet.amount, 0);
+    if (alreadyBet + amount > MAX_TOTAL_PER_USER) {
+      alert("Du får inte betta mer nu.");
+      return;
+    }
+
     addUsername(name);
     addUsername(target);
     addBet(name, target, prediction, amount);
