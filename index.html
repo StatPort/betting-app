@@ -91,7 +91,7 @@
     font-size: 0.95rem;
   }
 
-  label[for="username"], label[for="target"], label[for="prediction"], label[for="amount"] {
+  label[for="username"], label[for="target"], label[for="prediction"], label[for="amount"], label[for="summary-user"] {
     color: var(--muted);
   }
 
@@ -220,6 +220,14 @@
     color: var(--muted);
     font-size: 0.9rem;
     padding: 8px 0;
+  }
+
+  .summary-total {
+    text-align: right;
+    font-weight: 700;
+    color: var(--accent-2);
+    font-size: 1rem;
+    margin: 12px 0 0;
   }
 
   .pi-egg {
@@ -477,6 +485,46 @@
       </div>
       <p class="empty-bets" id="empty-bets">Inga satsningar än.</p>
     </div>
+
+    <div class="bets-panel">
+      <h2>Mina satsningar</h2>
+      <div class="field">
+        <label for="summary-user">Välj användare</label>
+        <select id="summary-user">
+          <option value="">Inga satsningar än</option>
+        </select>
+      </div>
+      <div class="table-scroll">
+        <table id="summary-table">
+          <thead>
+            <tr>
+              <th>Bettat på</th>
+              <th>Utfall</th>
+              <th style="text-align:right">Summa</th>
+            </tr>
+          </thead>
+          <tbody id="summary-body"></tbody>
+        </table>
+      </div>
+      <p class="empty-bets" id="summary-empty">Inga satsningar för denna användare.</p>
+      <p class="summary-total" id="summary-total"></p>
+    </div>
+
+    <div class="bets-panel">
+      <h2>Totalt satsat per spelare</h2>
+      <div class="table-scroll">
+        <table id="target-summary-table">
+          <thead>
+            <tr>
+              <th>Spelare</th>
+              <th style="text-align:right">Summa</th>
+            </tr>
+          </thead>
+          <tbody id="target-summary-body"></tbody>
+        </table>
+      </div>
+      <p class="empty-bets" id="target-summary-empty">Inga satsningar än.</p>
+    </div>
   </div>
 
   <button id="pi-egg" class="pi-egg" aria-label="π">π</button>
@@ -569,7 +617,96 @@
       row.append(usernameCell, targetCell, predictionCell, amountCell, removeCell);
       betsBody.appendChild(row);
     });
+    renderSummaries();
   }
+
+  const summaryUserSelect = document.getElementById("summary-user");
+  const summaryBody = document.getElementById("summary-body");
+  const summaryEmpty = document.getElementById("summary-empty");
+  const summaryTotal = document.getElementById("summary-total");
+  const targetSummaryBody = document.getElementById("target-summary-body");
+  const targetSummaryEmpty = document.getElementById("target-summary-empty");
+
+  function renderSummaries() {
+    const bettors = [...new Set(bets.map(bet => bet.username))].sort((a, b) => a.localeCompare(b, "sv"));
+    const previousSelection = summaryUserSelect.value;
+    summaryUserSelect.innerHTML = "";
+    if (bettors.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Inga satsningar än";
+      summaryUserSelect.appendChild(opt);
+      summaryUserSelect.disabled = true;
+    } else {
+      summaryUserSelect.disabled = false;
+      bettors.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        summaryUserSelect.appendChild(opt);
+      });
+      summaryUserSelect.value = bettors.includes(previousSelection) ? previousSelection : bettors[0];
+    }
+    renderUserSummary();
+    renderTargetTotals();
+  }
+
+  function renderUserSummary() {
+    const selected = summaryUserSelect.value;
+    const userBets = bets.filter(bet => bet.username === selected);
+
+    summaryBody.innerHTML = "";
+    summaryEmpty.style.display = userBets.length ? "none" : "block";
+
+    let total = 0;
+    userBets.forEach(bet => {
+      total += bet.amount;
+      const row = document.createElement("tr");
+
+      const targetCell = document.createElement("td");
+      targetCell.textContent = bet.target;
+
+      const predictionCell = document.createElement("td");
+      predictionCell.textContent = bet.prediction;
+
+      const amountCell = document.createElement("td");
+      amountCell.className = "amount-cell";
+      amountCell.textContent = `${bet.amount} SEK`;
+
+      row.append(targetCell, predictionCell, amountCell);
+      summaryBody.appendChild(row);
+    });
+
+    summaryTotal.textContent = userBets.length ? `Totalt satsat: ${total} SEK` : "";
+  }
+
+  function renderTargetTotals() {
+    const totals = {};
+    bets.forEach(bet => {
+      totals[bet.target] = (totals[bet.target] || 0) + bet.amount;
+    });
+    const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+
+    targetSummaryBody.innerHTML = "";
+    targetSummaryEmpty.style.display = entries.length ? "none" : "block";
+
+    entries.forEach(([target, total]) => {
+      const row = document.createElement("tr");
+
+      const targetCell = document.createElement("td");
+      targetCell.textContent = target;
+
+      const amountCell = document.createElement("td");
+      amountCell.className = "amount-cell";
+      amountCell.textContent = `${total} SEK`;
+
+      row.append(targetCell, amountCell);
+      targetSummaryBody.appendChild(row);
+    });
+  }
+
+  summaryUserSelect.addEventListener("change", renderUserSummary);
+
   renderBets();
 
   function removeBet(index) {
