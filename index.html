@@ -189,8 +189,12 @@
     font-size: 0.85rem;
   }
 
-  th:last-child, td:last-child {
+  #bets-table th:last-child, #bets-table td:last-child {
     width: 30px;
+  }
+
+  .col-amount {
+    width: 25%;
   }
 
   th, td {
@@ -476,7 +480,7 @@
               <th>Bettare</th>
               <th>Bettat på</th>
               <th>Utfall</th>
-              <th style="text-align:right">Summa</th>
+              <th class="col-amount" style="text-align:right">Summa</th>
               <th></th>
             </tr>
           </thead>
@@ -500,7 +504,7 @@
             <tr>
               <th>Bettat på</th>
               <th>Utfall</th>
-              <th style="text-align:right">Summa</th>
+              <th class="col-amount" style="text-align:right">Summa</th>
             </tr>
           </thead>
           <tbody id="summary-body"></tbody>
@@ -517,7 +521,7 @@
           <thead>
             <tr>
               <th>Spelare</th>
-              <th style="text-align:right">Summa</th>
+              <th class="col-amount" style="text-align:right">Summa</th>
             </tr>
           </thead>
           <tbody id="target-summary-body"></tbody>
