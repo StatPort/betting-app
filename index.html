@@ -234,6 +234,80 @@
     margin: 12px 0 0;
   }
 
+  .gate-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--wood-dark);
+    padding: 24px;
+  }
+
+  .gate-overlay.unlocked {
+    display: none;
+  }
+
+  .gate-box {
+    width: 100%;
+    max-width: 340px;
+    background: #fbf3e3;
+    border-radius: 20px;
+    padding: 32px 28px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .gate-box h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+    margin: 0 0 8px;
+    color: var(--ring-red);
+  }
+
+  .gate-hint {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 20px;
+  }
+
+  .gate-password-input {
+    border-color: #d8c3a0;
+    background: #fffdf8;
+    color: var(--text);
+  }
+
+  .gate-password-input::placeholder {
+    color: var(--muted);
+  }
+
+  .gate-submit-btn {
+    border-color: var(--ring-red);
+    color: var(--ring-red);
+  }
+
+  .gate-submit-btn:hover {
+    background: rgba(198,40,40,0.08);
+  }
+
+  .gate-step-hidden {
+    display: none;
+  }
+
+  .gate-underage-text {
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    text-align: left;
+    margin: 0 0 14px;
+  }
+
+  .gate-underage-text a {
+    color: var(--ring-red);
+  }
+
   .pi-egg {
     position: fixed;
     bottom: 14px;
@@ -317,6 +391,78 @@
     background: rgba(255,255,255,0.15);
   }
 
+  .admin-password-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 1rem;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .admin-password-input::placeholder {
+    color: rgba(255,255,255,0.6);
+  }
+
+  .modal-admin {
+    display: none;
+    text-align: left;
+  }
+
+  .modal-admin.open {
+    display: block;
+  }
+
+  .admin-heading {
+    text-align: center;
+  }
+
+  .modal-box label {
+    color: rgba(255,255,255,0.85);
+  }
+
+  .modal-box select {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.4);
+  }
+
+  .modal-box select option {
+    color: #1a1a1a;
+  }
+
+  .admin-table-scroll {
+    margin: 16px 0 4px;
+  }
+
+  .modal-box table th, .modal-box table td {
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.25);
+  }
+
+  .modal-box .empty-bets {
+    color: rgba(255,255,255,0.7);
+  }
+
+  .modal-box .remove-btn {
+    border-color: rgba(255,255,255,0.5);
+    color: #fff;
+  }
+
+  .modal-box .remove-btn:hover {
+    background: rgba(255,255,255,0.15);
+  }
+
+  .danger-btn {
+    margin-top: 20px;
+    border-color: rgba(255,255,255,0.3) !important;
+    color: rgba(255,255,255,0.7) !important;
+    font-size: 0.8rem !important;
+  }
+
   .remove-btn {
     width: 22px;
     height: 22px;
@@ -380,6 +526,32 @@
 </style>
 </head>
 <body>
+
+  <div id="gate-overlay" class="gate-overlay">
+    <div class="gate-box">
+      <div id="gate-step-password">
+        <h1>Couronne-turnering</h1>
+        <p class="gate-hint">Ange lösenord för att fortsätta</p>
+        <input type="password" id="gate-password" class="admin-password-input gate-password-input" placeholder="Lösenord" autocomplete="off">
+        <button id="gate-submit-btn" class="reset-btn gate-submit-btn">Fortsätt</button>
+      </div>
+
+      <div id="gate-step-age" class="gate-step-hidden">
+        <h1>Couronne-turnering</h1>
+        <p class="gate-hint">Hur gammal är du?</p>
+        <input type="number" id="gate-age" class="admin-password-input gate-password-input" placeholder="Ålder" min="0" max="120" autocomplete="off">
+        <button id="gate-age-btn" class="reset-btn gate-submit-btn">Fortsätt</button>
+      </div>
+
+      <div id="gate-step-underage" class="gate-step-hidden">
+        <h1>Couronne-turnering</h1>
+        <p class="gate-underage-text">Enligt svensk lag (14 kap. 2 § spellagen (2018:1138)) får licenspliktigt spel inte erbjudas till någon som är under 18 år. Du måste ha fyllt 18 år för att lägga ett vad, oavsett om det sker i en app, på en webbplats eller hos ett fysiskt spelombud.</p>
+        <p class="gate-underage-text">Du har fortfarande tillgång till sidan och kan följa spelet, men du får inte satsa pengar.</p>
+        <p class="gate-underage-text">Här kan du läsa mer om varför: <a href="https://om.svenskaspel.se/spelkoll/prata-med-barn-och-unga-om-spel-om-pengar/" target="_blank" rel="noopener">om.svenskaspel.se/spelkoll</a></p>
+        <button id="gate-underage-btn" class="reset-btn gate-submit-btn">Fortsätt till sidan</button>
+      </div>
+    </div>
+  </div>
 
   <svg class="board-bg" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <rect x="0" y="0" width="800" height="800" fill="#d9a86c"/>
@@ -536,8 +708,53 @@
   <div id="unauthorized-modal" class="modal-overlay">
     <div class="modal-box">
       <button id="modal-close" class="modal-close">&times;</button>
-      <h2>Unauthorized access</h2>
-      <button id="modal-reset-btn" class="reset-btn">Nollställ allt</button>
+
+      <div id="modal-locked">
+        <h2>Unauthorized access</h2>
+        <input type="password" id="admin-password" class="admin-password-input" placeholder="Lösenord" autocomplete="off">
+        <button id="admin-login-btn" class="reset-btn">Logga in</button>
+      </div>
+
+      <div id="modal-admin" class="modal-admin">
+        <h2 class="admin-heading">Admin</h2>
+
+        <div class="field">
+          <label for="outcome-player">Spelare</label>
+          <select id="outcome-player"></select>
+        </div>
+
+        <div class="field">
+          <label for="outcome-value">Utfall</label>
+          <select id="outcome-value">
+            <option value="" disabled selected>Välj...</option>
+            <option>Vinner</option>
+            <option>Går till final</option>
+            <option>Går till semifinal</option>
+            <option>Vinner 1 match</option>
+            <option>Vinner 2 matcher</option>
+            <option>Vinner 3 matcher</option>
+            <option>Åker ut först</option>
+          </select>
+        </div>
+
+        <button id="save-outcome-btn" class="reset-btn">Spara utfall</button>
+
+        <div class="table-scroll admin-table-scroll">
+          <table id="outcomes-table">
+            <thead>
+              <tr>
+                <th>Spelare</th>
+                <th>Utfall</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="outcomes-body"></tbody>
+          </table>
+        </div>
+        <p class="empty-bets" id="outcomes-empty">Inga utfall registrerade än.</p>
+
+        <button id="modal-reset-btn" class="reset-btn danger-btn">Nollställ allt</button>
+      </div>
     </div>
   </div>
 
@@ -545,6 +762,72 @@
   <div id="celebration-text"><span id="celebration-message">Vad festligt, nu startar vi turneringen!</span></div>
 
 <script>
+  const GATE_PASSWORD = "koster";
+  const GATE_STORAGE_KEY = "turnering-upplast";
+  const UNDERAGE_STORAGE_KEY = "turnering-underage";
+
+  const gateOverlay = document.getElementById("gate-overlay");
+  const gateStepPassword = document.getElementById("gate-step-password");
+  const gateStepAge = document.getElementById("gate-step-age");
+  const gateStepUnderage = document.getElementById("gate-step-underage");
+  const gatePasswordInput = document.getElementById("gate-password");
+  const gateSubmitBtn = document.getElementById("gate-submit-btn");
+  const gateAgeInput = document.getElementById("gate-age");
+  const gateAgeBtn = document.getElementById("gate-age-btn");
+  const gateUnderageBtn = document.getElementById("gate-underage-btn");
+
+  let isUnderage = localStorage.getItem(UNDERAGE_STORAGE_KEY) === "true";
+
+  if (localStorage.getItem(GATE_STORAGE_KEY) === "true") {
+    gateOverlay.classList.add("unlocked");
+  }
+
+  function tryUnlockGate() {
+    if (gatePasswordInput.value === GATE_PASSWORD) {
+      gateStepPassword.classList.add("gate-step-hidden");
+      gateStepAge.classList.remove("gate-step-hidden");
+      gateAgeInput.focus();
+    } else {
+      alert("Fel lösenord.");
+      gatePasswordInput.value = "";
+      gatePasswordInput.focus();
+    }
+  }
+
+  function submitAge() {
+    const age = Number(gateAgeInput.value);
+    if (gateAgeInput.value === "" || Number.isNaN(age) || age < 0) {
+      alert("Ange en giltig ålder.");
+      return;
+    }
+
+    isUnderage = age < 18;
+    localStorage.setItem(UNDERAGE_STORAGE_KEY, String(isUnderage));
+
+    if (isUnderage) {
+      gateStepAge.classList.add("gate-step-hidden");
+      gateStepUnderage.classList.remove("gate-step-hidden");
+    } else {
+      localStorage.setItem(GATE_STORAGE_KEY, "true");
+      gateOverlay.classList.add("unlocked");
+    }
+  }
+
+  gateSubmitBtn.addEventListener("click", tryUnlockGate);
+  gatePasswordInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tryUnlockGate();
+  });
+
+  gateAgeBtn.addEventListener("click", submitAge);
+  gateAgeInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submitAge();
+  });
+
+  gateUnderageBtn.addEventListener("click", () => {
+    localStorage.setItem(GATE_STORAGE_KEY, "true");
+    gateOverlay.classList.add("unlocked");
+  });
+
   // Ursprungslista, används bara första gången appen öppnas i en webbläsare.
   const DEFAULT_USERNAMES = [
     "SamTheMan", "JullTheBull", "Mike", "MatillaTheThrilla", "LinaGrahnBästIStan",
@@ -794,6 +1077,11 @@
   const MAX_TOTAL_PER_USER = 50;
 
   submitBtn.addEventListener("click", () => {
+    if (isUnderage) {
+      alert("Tyvärr, du är för ung.");
+      return;
+    }
+
     const name = usernameInput.value.trim();
     const target = targetInput.value.trim();
     const prediction = predictionSelect.value;
@@ -825,11 +1113,49 @@
     launchCelebration(message);
   });
 
-  const RESET_PASSWORD = "Matildaärbäst";
+  const ADMIN_PASSWORD = "Matildaärbäst";
+  const OUTCOMES_STORAGE_KEY = "turnering-utfall";
+
+  function loadOutcomes() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(OUTCOMES_STORAGE_KEY));
+      if (stored && typeof stored === "object") return stored;
+    } catch (e) {}
+    return {};
+  }
+
+  function saveOutcomes(data) {
+    localStorage.setItem(OUTCOMES_STORAGE_KEY, JSON.stringify(data));
+  }
+
+  let outcomes = loadOutcomes();
+
   const piEgg = document.getElementById("pi-egg");
   const unauthorizedModal = document.getElementById("unauthorized-modal");
   const modalClose = document.getElementById("modal-close");
+  const modalLocked = document.getElementById("modal-locked");
+  const modalAdmin = document.getElementById("modal-admin");
+  const adminPasswordInput = document.getElementById("admin-password");
+  const adminLoginBtn = document.getElementById("admin-login-btn");
+  const outcomePlayerSelect = document.getElementById("outcome-player");
+  const outcomeValueSelect = document.getElementById("outcome-value");
+  const saveOutcomeBtn = document.getElementById("save-outcome-btn");
+  const outcomesBody = document.getElementById("outcomes-body");
+  const outcomesEmpty = document.getElementById("outcomes-empty");
   const modalResetBtn = document.getElementById("modal-reset-btn");
+
+  function lockAdminModal() {
+    modalAdmin.classList.remove("open");
+    modalLocked.style.display = "block";
+    adminPasswordInput.value = "";
+  }
+
+  function unlockAdminModal() {
+    modalLocked.style.display = "none";
+    modalAdmin.classList.add("open");
+    renderOutcomePlayerOptions();
+    renderOutcomesTable();
+  }
 
   piEgg.addEventListener("click", () => {
     unauthorizedModal.classList.add("open");
@@ -837,19 +1163,86 @@
 
   modalClose.addEventListener("click", () => {
     unauthorizedModal.classList.remove("open");
+    lockAdminModal();
   });
 
   unauthorizedModal.addEventListener("click", (e) => {
-    if (e.target === unauthorizedModal) unauthorizedModal.classList.remove("open");
+    if (e.target === unauthorizedModal) {
+      unauthorizedModal.classList.remove("open");
+      lockAdminModal();
+    }
+  });
+
+  adminLoginBtn.addEventListener("click", () => {
+    if (adminPasswordInput.value !== ADMIN_PASSWORD) {
+      alert("Fel lösenord.");
+      adminPasswordInput.value = "";
+      return;
+    }
+    unlockAdminModal();
+  });
+
+  adminPasswordInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") adminLoginBtn.click();
+  });
+
+  function renderOutcomePlayerOptions() {
+    const previous = outcomePlayerSelect.value;
+    outcomePlayerSelect.innerHTML = "";
+    usernames.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      outcomePlayerSelect.appendChild(opt);
+    });
+    if (usernames.includes(previous)) outcomePlayerSelect.value = previous;
+  }
+
+  function renderOutcomesTable() {
+    outcomesBody.innerHTML = "";
+    const entries = Object.entries(outcomes);
+    outcomesEmpty.style.display = entries.length ? "none" : "block";
+
+    entries.forEach(([player, outcome]) => {
+      const row = document.createElement("tr");
+
+      const playerCell = document.createElement("td");
+      playerCell.textContent = player;
+
+      const outcomeCell = document.createElement("td");
+      outcomeCell.textContent = outcome;
+
+      const removeCell = document.createElement("td");
+      removeCell.style.textAlign = "right";
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "remove-btn";
+      removeBtn.textContent = "✕";
+      removeBtn.title = "Ta bort utfall";
+      removeBtn.addEventListener("click", () => {
+        delete outcomes[player];
+        saveOutcomes(outcomes);
+        renderOutcomesTable();
+      });
+      removeCell.appendChild(removeBtn);
+
+      row.append(playerCell, outcomeCell, removeCell);
+      outcomesBody.appendChild(row);
+    });
+  }
+
+  saveOutcomeBtn.addEventListener("click", () => {
+    const player = outcomePlayerSelect.value;
+    const outcome = outcomeValueSelect.value;
+    if (!player || !outcome) return;
+    outcomes[player] = outcome;
+    saveOutcomes(outcomes);
+    outcomeValueSelect.value = "";
+    renderOutcomesTable();
   });
 
   modalResetBtn.addEventListener("click", () => {
-    const password = prompt("Ange lösenord:");
-    if (password === null) return;
-    if (password !== RESET_PASSWORD) {
-      alert("Fel lösenord.");
-      return;
-    }
+    if (!confirm("Nollställa alla satsningar och namn som lagts till? Detta går inte att ångra.")) return;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(BETS_STORAGE_KEY);
     usernames = loadUsernames();
@@ -861,7 +1254,9 @@
     predictionSelect.value = "";
     updatePredictionLabel();
     updateSubmitState();
+    renderOutcomePlayerOptions();
     unauthorizedModal.classList.remove("open");
+    lockAdminModal();
   });
 
   // --- Fireworks ---
