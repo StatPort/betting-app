@@ -203,6 +203,22 @@
     padding: 8px 0;
   }
 
+  .remove-btn {
+    padding: 4px 10px;
+    border: 1px solid rgba(198,40,40,0.4);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ring-red);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .remove-btn:hover {
+    background: rgba(198,40,40,0.1);
+  }
+
   .layout {
     display: flex;
     flex-direction: column;
@@ -311,6 +327,20 @@
       </div>
 
       <div class="field">
+        <label for="prediction" id="prediction-label">Jag tror att personen...</label>
+        <select id="prediction">
+          <option value="" disabled selected>Välj...</option>
+          <option>Vinner</option>
+          <option>Går till final</option>
+          <option>Går till semifinal</option>
+          <option>Vinner 1 match</option>
+          <option>Vinner 2 matcher</option>
+          <option>Vinner 3 matcher</option>
+          <option>Åker ut först</option>
+        </select>
+      </div>
+
+      <div class="field">
         <label for="amount">Hur mycket vill du satsa?</label>
         <div class="amount-row">
           <input type="range" id="amount" min="1" max="20" step="1" value="1">
@@ -327,9 +357,11 @@
       <table id="bets-table">
         <thead>
           <tr>
-            <th>Användarnamn</th>
+            <th>Bettare</th>
             <th>Bettat på</th>
+            <th>Tror att...</th>
             <th style="text-align:right">Summa</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="bets-body"></tbody>
@@ -383,10 +415,12 @@
   const betsBody = document.getElementById("bets-body");
   const emptyBets = document.getElementById("empty-bets");
 
+  const REMOVE_PASSWORD = "matildaärbäst";
+
   function renderBets() {
     betsBody.innerHTML = "";
     emptyBets.style.display = bets.length ? "none" : "block";
-    bets.forEach(bet => {
+    bets.forEach((bet, index) => {
       const row = document.createElement("tr");
 
       const usernameCell = document.createElement("td");
@@ -395,18 +429,42 @@
       const targetCell = document.createElement("td");
       targetCell.textContent = bet.target;
 
+      const predictionCell = document.createElement("td");
+      predictionCell.textContent = bet.prediction;
+
       const amountCell = document.createElement("td");
       amountCell.className = "amount-cell";
       amountCell.textContent = `${bet.amount} SEK`;
 
-      row.append(usernameCell, targetCell, amountCell);
+      const removeCell = document.createElement("td");
+      removeCell.style.textAlign = "right";
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "remove-btn";
+      removeBtn.textContent = "Ta bort";
+      removeBtn.addEventListener("click", () => removeBet(index));
+      removeCell.appendChild(removeBtn);
+
+      row.append(usernameCell, targetCell, predictionCell, amountCell, removeCell);
       betsBody.appendChild(row);
     });
   }
   renderBets();
 
-  function addBet(username, target, amount) {
-    bets.push({ username, target, amount });
+  function removeBet(index) {
+    const password = prompt("Ange lösenord för att ta bort satsningen:");
+    if (password === null) return;
+    if (password !== REMOVE_PASSWORD) {
+      alert("Fel lösenord.");
+      return;
+    }
+    bets.splice(index, 1);
+    saveBets(bets);
+    renderBets();
+  }
+
+  function addBet(username, target, prediction, amount) {
+    bets.push({ username, target, prediction, amount });
     saveBets(bets);
     renderBets();
   }
@@ -415,6 +473,8 @@
   const usernameSuggestions = document.getElementById("username-suggestions");
   const targetInput = document.getElementById("target");
   const targetSuggestions = document.getElementById("target-suggestions");
+  const predictionSelect = document.getElementById("prediction");
+  const predictionLabel = document.getElementById("prediction-label");
   const amountInput = document.getElementById("amount");
   const amountValue = document.getElementById("amount-value");
   const submitBtn = document.getElementById("submit-btn");
@@ -442,13 +502,22 @@
     }
   }
 
+  function updatePredictionLabel() {
+    const target = targetInput.value.trim();
+    predictionLabel.textContent = target ? `Jag tror att ${target}...` : "Jag tror att personen...";
+  }
+
   function updateSubmitState() {
-    const valid = usernameInput.value.trim() && targetInput.value.trim();
+    const valid = usernameInput.value.trim() && targetInput.value.trim() && predictionSelect.value;
     submitBtn.disabled = !valid;
   }
 
   usernameInput.addEventListener("input", updateSubmitState);
-  targetInput.addEventListener("input", updateSubmitState);
+  targetInput.addEventListener("input", () => {
+    updatePredictionLabel();
+    updateSubmitState();
+  });
+  predictionSelect.addEventListener("change", updateSubmitState);
 
   amountInput.addEventListener("input", () => {
     amountValue.textContent = amountInput.value;
@@ -463,18 +532,21 @@
   submitBtn.addEventListener("click", () => {
     const name = usernameInput.value.trim();
     const target = targetInput.value.trim();
+    const prediction = predictionSelect.value;
     const amount = Number(amountInput.value);
-    if (!name || !target) return;
+    if (!name || !target || !prediction) return;
     addUsername(name);
     addUsername(target);
-    addBet(name, target, amount);
+    addBet(name, target, prediction, amount);
 
     const message = messageForAmount(amount);
 
     usernameInput.value = "";
     targetInput.value = "";
+    predictionSelect.value = "";
     amountInput.value = 1;
     amountValue.textContent = "1";
+    updatePredictionLabel();
     updateSubmitState();
 
     launchCelebration(message);
