@@ -179,15 +179,16 @@
 
   th, td {
     text-align: left;
-    padding: 8px 6px;
+    padding: 8px 4px;
     border-bottom: 1px solid #e6d5b8;
   }
 
   th {
     color: var(--muted);
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.6rem;
     text-transform: uppercase;
+    white-space: nowrap;
   }
 
   td.amount-cell {
@@ -201,6 +202,89 @@
     color: var(--muted);
     font-size: 0.9rem;
     padding: 8px 0;
+  }
+
+  .pi-egg {
+    position: fixed;
+    bottom: 14px;
+    right: 16px;
+    z-index: 5;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: rgba(122,74,36,0.35);
+    font-size: 1.3rem;
+    font-family: Georgia, "Times New Roman", serif;
+    cursor: pointer;
+  }
+
+  .pi-egg:hover {
+    color: rgba(122,74,36,0.7);
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.6);
+    padding: 24px;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  .modal-box {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    background: #b31414;
+    border-radius: 12px;
+    padding: 32px 28px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    width: auto;
+    background: transparent;
+    border: none;
+    color: #ffe9e9;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  .modal-box h2 {
+    color: #fff;
+    font-size: 1.3rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+  }
+
+  .modal-box .reset-btn {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 10px;
+    background: transparent;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .modal-box .reset-btn:hover {
+    background: rgba(255,255,255,0.15);
   }
 
   .remove-btn {
@@ -359,7 +443,7 @@
           <tr>
             <th>Bettare</th>
             <th>Bettat på</th>
-            <th>Tror att...</th>
+            <th>Utfall</th>
             <th style="text-align:right">Summa</th>
             <th></th>
           </tr>
@@ -367,6 +451,16 @@
         <tbody id="bets-body"></tbody>
       </table>
       <p class="empty-bets" id="empty-bets">Inga satsningar än.</p>
+    </div>
+  </div>
+
+  <button id="pi-egg" class="pi-egg" aria-label="π">π</button>
+
+  <div id="unauthorized-modal" class="modal-overlay">
+    <div class="modal-box">
+      <button id="modal-close" class="modal-close">&times;</button>
+      <h2>Unauthorized access</h2>
+      <button id="modal-reset-btn" class="reset-btn">Nollställ allt</button>
     </div>
   </div>
 
@@ -550,6 +644,45 @@
     updateSubmitState();
 
     launchCelebration(message);
+  });
+
+  const RESET_PASSWORD = "Matildaärbäst";
+  const piEgg = document.getElementById("pi-egg");
+  const unauthorizedModal = document.getElementById("unauthorized-modal");
+  const modalClose = document.getElementById("modal-close");
+  const modalResetBtn = document.getElementById("modal-reset-btn");
+
+  piEgg.addEventListener("click", () => {
+    unauthorizedModal.classList.add("open");
+  });
+
+  modalClose.addEventListener("click", () => {
+    unauthorizedModal.classList.remove("open");
+  });
+
+  unauthorizedModal.addEventListener("click", (e) => {
+    if (e.target === unauthorizedModal) unauthorizedModal.classList.remove("open");
+  });
+
+  modalResetBtn.addEventListener("click", () => {
+    const password = prompt("Ange lösenord:");
+    if (password === null) return;
+    if (password !== RESET_PASSWORD) {
+      alert("Fel lösenord.");
+      return;
+    }
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(BETS_STORAGE_KEY);
+    usernames = loadUsernames();
+    bets = loadBets();
+    renderUsernames();
+    renderBets();
+    usernameInput.value = "";
+    targetInput.value = "";
+    predictionSelect.value = "";
+    updatePredictionLabel();
+    updateSubmitState();
+    unauthorizedModal.classList.remove("open");
   });
 
   // --- Fireworks ---
