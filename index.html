@@ -837,12 +837,20 @@
 
   const DB_BASE = "https://couronne-ef096-default-rtdb.europe-west1.firebasedatabase.app";
 
+  function handleFbError(err) {
+    console.error("Firebase-fel:", err);
+    alert("Kunde inte spara mot servern just nu (nätverksfel). Kontrollera din internetanslutning och försök igen.");
+  }
+
   function fbPost(path, value) {
     return fetch(`${DB_BASE}/${path}.json`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(value)
-    });
+    }).then(res => {
+      if (!res.ok) throw new Error(`POST ${path} misslyckades: ${res.status}`);
+      return res.json();
+    }).catch(handleFbError);
   }
 
   function fbPut(path, value) {
@@ -850,11 +858,17 @@
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(value)
-    });
+    }).then(res => {
+      if (!res.ok) throw new Error(`PUT ${path} misslyckades: ${res.status}`);
+      return res.json();
+    }).catch(handleFbError);
   }
 
   function fbDelete(path) {
-    return fetch(`${DB_BASE}/${path}.json`, { method: "DELETE" });
+    return fetch(`${DB_BASE}/${path}.json`, { method: "DELETE" }).then(res => {
+      if (!res.ok) throw new Error(`DELETE ${path} misslyckades: ${res.status}`);
+      return res.json();
+    }).catch(handleFbError);
   }
 
   function firebaseKey(str) {
@@ -875,6 +889,9 @@
       }
       onUpdate(store);
     });
+    es.onerror = (e) => {
+      console.error(`Firebase-synk (${path}) tappade anslutningen, försöker återansluta...`, e);
+    };
     return es;
   }
 
