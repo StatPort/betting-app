@@ -623,12 +623,11 @@
         <label for="prediction" id="prediction-label">Jag tror att personen...</label>
         <select id="prediction">
           <option value="" disabled selected>Välj...</option>
-          <option>Vinner</option>
-          <option>Går till final</option>
-          <option>Går till semifinal</option>
-          <option>Vinner 1 match</option>
-          <option>Vinner 2 matcher</option>
-          <option>Vinner 3 matcher</option>
+          <option>Vinner hela balunset</option>
+          <option>Vinner brons</option>
+          <option>Vinner semifinal</option>
+          <option>Vinner i kvarsfinal</option>
+          <option>MVP</option>
           <option>Åker ut först</option>
         </select>
       </div>
@@ -729,12 +728,11 @@
           <label for="outcome-value">Utfall</label>
           <select id="outcome-value">
             <option value="" disabled selected>Välj...</option>
-            <option>Vinner</option>
-            <option>Går till final</option>
-            <option>Går till semifinal</option>
-            <option>Vinner 1 match</option>
-            <option>Vinner 2 matcher</option>
-            <option>Vinner 3 matcher</option>
+            <option>Vinner hela balunset</option>
+            <option>Vinner brons</option>
+            <option>Vinner semifinal</option>
+            <option>Vinner i kvarsfinal</option>
+            <option>MVP</option>
             <option>Åker ut först</option>
           </select>
         </div>
@@ -830,43 +828,61 @@
     gateOverlay.classList.add("unlocked");
   });
 
-  // Ursprungslista, används bara första gången appen öppnas i en webbläsare.
+  // Ursprungslista, används av admins "Nollställ allt" för att återställa deltagarlistan.
   const DEFAULT_USERNAMES = [
     "SamTheMan", "JullTheBull", "Mike", "MatillaTheThrilla", "LinaGrahnBästIStan",
     "NissePisséPäronpungJättegammalInteUng", "FasterFaster", "MatsiYatzi", "MiAnmore",
     "Annannannanas", "HannaBanana", "AllYouNeedIsLove", "PiancaIngrosso", "Länsman"
   ];
-  const STORAGE_KEY = "turnering-anvandarnamn";
 
-  function loadUsernames() {
-    try {
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (Array.isArray(stored) && stored.length) return stored;
-    } catch (e) {}
-    return [...DEFAULT_USERNAMES];
+  const DB_BASE = "https://couronne-ef096-default-rtdb.europe-west1.firebasedatabase.app";
+
+  function fbPost(path, value) {
+    return fetch(`${DB_BASE}/${path}.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(value)
+    });
   }
 
-  function saveUsernames(names) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(names));
+  function fbPut(path, value) {
+    return fetch(`${DB_BASE}/${path}.json`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(value)
+    });
   }
 
-  let usernames = loadUsernames();
-
-  const BETS_STORAGE_KEY = "turnering-satsningar";
-
-  function loadBets() {
-    try {
-      const stored = JSON.parse(localStorage.getItem(BETS_STORAGE_KEY));
-      if (Array.isArray(stored)) return stored;
-    } catch (e) {}
-    return [];
+  function fbDelete(path) {
+    return fetch(`${DB_BASE}/${path}.json`, { method: "DELETE" });
   }
 
-  function saveBets(list) {
-    localStorage.setItem(BETS_STORAGE_KEY, JSON.stringify(list));
+  function firebaseKey(str) {
+    return encodeURIComponent(str).replace(/\./g, "%2E");
   }
 
-  let bets = loadBets();
+  function subscribeCollection(path, onUpdate) {
+    let store = {};
+    const es = new EventSource(`${DB_BASE}/${path}.json`);
+    es.addEventListener("put", (e) => {
+      const { path: p, data } = JSON.parse(e.data);
+      if (p === "/") {
+        store = data || {};
+      } else {
+        const key = p.slice(1);
+        if (data === null) delete store[key];
+        else store[key] = data;
+      }
+      onUpdate(store);
+    });
+    return es;
+  }
+
+  let usernamesStore = {};
+  let usernames = [];
+
+  let betsStore = {};
+  let bets = [];
 
   const betsBody = document.getElementById("bets-body");
   const emptyBets = document.getElementById("empty-bets");
@@ -876,7 +892,7 @@
   function renderBets() {
     betsBody.innerHTML = "";
     emptyBets.style.display = bets.length ? "none" : "block";
-    bets.forEach((bet, index) => {
+    bets.forEach((bet) => {
       const row = document.createElement("tr");
 
       const usernameCell = document.createElement("td");
@@ -900,7 +916,7 @@
       removeBtn.textContent = "✕";
       removeBtn.title = "Ta bort";
       removeBtn.setAttribute("aria-label", "Ta bort satsning");
-      removeBtn.addEventListener("click", () => removeBet(index));
+      removeBtn.addEventListener("click", () => removeBet(bet.key));
       removeCell.appendChild(removeBtn);
 
       row.append(usernameCell, targetCell, predictionCell, amountCell, removeCell);
@@ -996,24 +1012,18 @@
 
   summaryUserSelect.addEventListener("change", renderUserSummary);
 
-  renderBets();
-
-  function removeBet(index) {
+  function removeBet(key) {
     const password = prompt("Ange lösenord för att ta bort satsningen:");
     if (password === null) return;
     if (password !== REMOVE_PASSWORD) {
       alert("Fel lösenord.");
       return;
     }
-    bets.splice(index, 1);
-    saveBets(bets);
-    renderBets();
+    fbDelete(`bets/${key}`);
   }
 
   function addBet(username, target, prediction, amount) {
-    bets.push({ username, target, prediction, amount });
-    saveBets(bets);
-    renderBets();
+    fbPost("bets", { username, target, prediction, amount });
   }
 
   const usernameInput = document.getElementById("username");
@@ -1039,13 +1049,10 @@
     fillDatalist(usernameSuggestions);
     fillDatalist(targetSuggestions);
   }
-  renderUsernames();
 
   function addUsername(name) {
     if (!usernames.includes(name)) {
-      usernames.push(name);
-      saveUsernames(usernames);
-      renderUsernames();
+      fbPost("usernames", name);
     }
   }
 
@@ -1116,21 +1123,8 @@
   });
 
   const ADMIN_PASSWORD = "Matildaärbäst";
-  const OUTCOMES_STORAGE_KEY = "turnering-utfall";
 
-  function loadOutcomes() {
-    try {
-      const stored = JSON.parse(localStorage.getItem(OUTCOMES_STORAGE_KEY));
-      if (stored && typeof stored === "object") return stored;
-    } catch (e) {}
-    return {};
-  }
-
-  function saveOutcomes(data) {
-    localStorage.setItem(OUTCOMES_STORAGE_KEY, JSON.stringify(data));
-  }
-
-  let outcomes = loadOutcomes();
+  let outcomesStore = {};
 
   const piEgg = document.getElementById("pi-egg");
   const unauthorizedModal = document.getElementById("unauthorized-modal");
@@ -1202,17 +1196,17 @@
 
   function renderOutcomesTable() {
     outcomesBody.innerHTML = "";
-    const entries = Object.entries(outcomes);
+    const entries = Object.entries(outcomesStore);
     outcomesEmpty.style.display = entries.length ? "none" : "block";
 
-    entries.forEach(([player, outcome]) => {
+    entries.forEach(([key, val]) => {
       const row = document.createElement("tr");
 
       const playerCell = document.createElement("td");
-      playerCell.textContent = player;
+      playerCell.textContent = val.player;
 
       const outcomeCell = document.createElement("td");
-      outcomeCell.textContent = outcome;
+      outcomeCell.textContent = val.outcome;
 
       const removeCell = document.createElement("td");
       removeCell.style.textAlign = "right";
@@ -1222,9 +1216,7 @@
       removeBtn.textContent = "✕";
       removeBtn.title = "Ta bort utfall";
       removeBtn.addEventListener("click", () => {
-        delete outcomes[player];
-        saveOutcomes(outcomes);
-        renderOutcomesTable();
+        fbDelete(`outcomes/${key}`);
       });
       removeCell.appendChild(removeBtn);
 
@@ -1237,26 +1229,19 @@
     const player = outcomePlayerSelect.value;
     const outcome = outcomeValueSelect.value;
     if (!player || !outcome) return;
-    outcomes[player] = outcome;
-    saveOutcomes(outcomes);
+    fbPut(`outcomes/${firebaseKey(player)}`, { player, outcome });
     outcomeValueSelect.value = "";
-    renderOutcomesTable();
   });
 
   modalResetBtn.addEventListener("click", () => {
     if (!confirm("Nollställa alla satsningar och namn som lagts till? Detta går inte att ångra.")) return;
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(BETS_STORAGE_KEY);
-    usernames = loadUsernames();
-    bets = loadBets();
-    renderUsernames();
-    renderBets();
+    fbDelete("bets");
+    fbPut("usernames", Object.fromEntries(DEFAULT_USERNAMES.map((name, i) => [`u${i + 1}`, name])));
     usernameInput.value = "";
     targetInput.value = "";
     predictionSelect.value = "";
     updatePredictionLabel();
     updateSubmitState();
-    renderOutcomePlayerOptions();
     unauthorizedModal.classList.remove("open");
     lockAdminModal();
   });
@@ -1345,6 +1330,25 @@
       celebrationText.style.display = "none";
     }, 6000);
   }
+
+  // --- Live-synk mot Firebase ---
+  subscribeCollection("usernames", (store) => {
+    usernamesStore = store;
+    usernames = Object.values(store);
+    renderUsernames();
+    renderOutcomePlayerOptions();
+  });
+
+  subscribeCollection("bets", (store) => {
+    betsStore = store;
+    bets = Object.entries(store).map(([key, val]) => ({ key, ...val }));
+    renderBets();
+  });
+
+  subscribeCollection("outcomes", (store) => {
+    outcomesStore = store;
+    renderOutcomesTable();
+  });
 </script>
 </body>
 </html>
