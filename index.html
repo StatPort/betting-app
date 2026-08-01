@@ -1306,31 +1306,28 @@
       outcomeByPlayer[player] = outcome;
     });
 
-    // Pari-mutuel-pott per spelare: vinnarna delar på hela potten (allas
-    // insatser på den spelaren) i proportion till sin egen insats.
-    const totalPoolByTarget = {};
-    const winningPoolByTarget = {};
-    bets.forEach(bet => {
-      totalPoolByTarget[bet.target] = (totalPoolByTarget[bet.target] || 0) + bet.amount;
-      const actualOutcome = outcomeByPlayer[bet.target];
-      if (actualOutcome && actualOutcome === bet.prediction) {
-        winningPoolByTarget[bet.target] = (winningPoolByTarget[bet.target] || 0) + bet.amount;
-      }
-    });
+    // En gemensam pott för hela turneringen: alla avgjorda satsningar (där
+    // spelaren man bettat på har ett registrerat utfall) läggs i samma pott.
+    // De som gissat rätt delar på förlorarnas insatser i proportion till sin
+    // egen insats. "Vunnit" = nettovinsten, dvs det man tjänar utöver att få
+    // tillbaka sin egen insats.
+    const resolvedBets = bets.filter(bet => outcomeByPlayer[bet.target] !== undefined);
+    const totalPool = resolvedBets.reduce((sum, bet) => sum + bet.amount, 0);
+    const winningBets = resolvedBets.filter(bet => outcomeByPlayer[bet.target] === bet.prediction);
+    const winningPool = winningBets.reduce((sum, bet) => sum + bet.amount, 0);
 
     const winnings = {};
-    bets.forEach(bet => {
-      const actualOutcome = outcomeByPlayer[bet.target];
-      if (!actualOutcome || actualOutcome !== bet.prediction) return;
-
-      const totalPool = totalPoolByTarget[bet.target];
-      const winningPool = winningPoolByTarget[bet.target];
-      const payout = bet.amount * (totalPool / winningPool);
-      winnings[bet.username] = (winnings[bet.username] || 0) + payout;
-    });
+    if (winningPool > 0) {
+      winningBets.forEach(bet => {
+        const payout = bet.amount * (totalPool / winningPool);
+        const profit = payout - bet.amount;
+        winnings[bet.username] = (winnings[bet.username] || 0) + profit;
+      });
+    }
 
     const entries = Object.entries(winnings)
       .map(([username, total]) => [username, Math.round(total)])
+      .filter(([, total]) => total > 0)
       .sort((a, b) => b[1] - a[1]);
 
     winningsBody.innerHTML = "";
